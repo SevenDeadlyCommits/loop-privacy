@@ -1,0 +1,473 @@
+<title>Loop Support</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+
+<style>
+  :root {
+    --paper:      #FBFBFD;
+    --surface:    #F3F3F8;
+    --ink:        #1A1A24;
+    --muted:      #626174;
+    --faint:      #8E8DA0;
+    --rule:       #E3E2EE;
+    --accent:     #5B50E0;
+    --accent-dim: #EEECFC;
+
+    --serif: "Source Serif 4", ui-serif, Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", ui-sans-serif, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:      #121218;
+      --surface:    #1B1B24;
+      --ink:        #EDECF3;
+      --muted:      #A09FB2;
+      --faint:      #77768A;
+      --rule:       #2A2A36;
+      --accent:     #9D95FF;
+      --accent-dim: #232134;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper:      #121218;
+    --surface:    #1B1B24;
+    --ink:        #EDECF3;
+    --muted:      #A09FB2;
+    --faint:      #77768A;
+    --rule:       #2A2A36;
+    --accent:     #9D95FF;
+    --accent-dim: #232134;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.75rem;
+  }
+
+  /* ---- Masthead ---------------------------------------------------- */
+
+  .masthead { display: flex; flex-direction: column; gap: 1rem; }
+
+  .wordmark {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 1.0625rem;
+    letter-spacing: -0.01em;
+  }
+
+  .wordmark svg { display: block; flex: none; }
+
+  h1 {
+    font-family: var(--sans);
+    font-size: clamp(1.9rem, 5vw, 2.4rem);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  .lede { color: var(--muted); margin: 0; max-width: 34rem; }
+
+  /* ---- Spec strip ---------------------------------------------------
+     Three facts people check before anything else. A row of label/value
+     pairs, not cards - they are one object, read across.               */
+
+  .spec {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .spec div { background: var(--paper); padding: 0.9rem 1.1rem; display: flex; flex-direction: column; gap: 0.15rem; }
+
+  .spec dt {
+    font-family: var(--sans);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .spec dd { margin: 0; font-family: var(--sans); font-size: 0.92rem; font-weight: 500; }
+
+  @media (max-width: 32rem) { .spec { grid-template-columns: 1fr; } }
+
+  /* ---- Sections ------------------------------------------------------ */
+
+  section { display: flex; flex-direction: column; gap: 1.6rem; }
+
+  section + section { border-top: 1px solid var(--rule); padding-top: 2.25rem; }
+
+  h2 {
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0;
+  }
+
+  .qa { display: flex; flex-direction: column; gap: 0.55rem; }
+
+  h3 {
+    font-family: var(--sans);
+    font-size: 1.02rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  p { margin: 0; }
+  .qa p + p { margin-top: 0.55rem; }
+
+  a {
+    color: var(--accent);
+    text-underline-offset: 0.18em;
+    text-decoration-thickness: 1px;
+  }
+
+  a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  code, kbd {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 0.08em 0.34em;
+    overflow-wrap: anywhere;
+  }
+
+  /* The Apple modifier glyphs (⌘ ⌥ ⌃) are not in IBM Plex, so keys take a
+     system-first stack where those characters actually exist. */
+  kbd {
+    font-family: -apple-system, ui-sans-serif, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .path {
+    font-family: -apple-system, ui-sans-serif, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    font-size: 0.95em;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  ul { margin: 0.2rem 0 0; padding: 0; list-style: none; display: grid; gap: 0.5rem; }
+
+  li {
+    display: grid;
+    grid-template-columns: 1.25rem 1fr;
+    align-items: baseline;
+    gap: 0.3rem;
+    color: var(--muted);
+    font-size: 0.97rem;
+  }
+
+  li::before { content: "—"; color: var(--accent); font-family: var(--sans); }
+
+  .contact {
+    background: var(--accent-dim);
+    border-left: 2px solid var(--accent);
+    padding: 1.3rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .contact h2 { color: var(--ink); }
+
+  footer {
+    border-top: 1px solid var(--rule);
+    padding-top: 2rem;
+    font-family: var(--sans);
+    font-size: 0.83rem;
+    color: var(--faint);
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+</style>
+
+<div class="page">
+
+  <header class="masthead">
+    <div class="wordmark">
+      <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+        <circle cx="11" cy="11" r="11" fill="var(--accent)"></circle>
+        <path d="M11 4.6 A6.4 6.4 0 1 0 16.1 7.2" fill="none" stroke="var(--paper)"
+              stroke-width="2.7" stroke-linecap="round"></path>
+      </svg>
+      <span>Loop</span>
+    </div>
+
+    <h1>Support</h1>
+
+    <p class="lede">
+      Answers to the things people ask most about Loop, the offline-first focus timer for
+      the macOS menu bar.
+    </p>
+  </header>
+
+  <dl class="spec">
+    <div>
+      <dt>Requires</dt>
+      <dd>macOS 14 or later</dd>
+    </div>
+    <div>
+      <dt>Price</dt>
+      <dd>Free · optional one-time Pro</dd>
+    </div>
+    <div>
+      <dt>Network</dt>
+      <dd>None — works fully offline</dd>
+    </div>
+  </dl>
+
+  <section>
+    <h2>Getting started</h2>
+
+    <div class="qa">
+      <h3>I installed Loop but I can't find it</h3>
+      <p>
+        Loop has no Dock icon by design — it lives in the menu bar. Look along the top of
+        your screen for the ring icon and click it to open the timer.
+      </p>
+      <p>
+        If the menu bar is crowded, macOS may have hidden it. Try widening the menu bar area
+        or quitting another menu bar app to make room.
+      </p>
+    </div>
+
+    <div class="qa">
+      <h3>How do I start a session?</h3>
+      <p>
+        Click the menu bar icon and press <strong>Start</strong>, or press
+        <kbd>⌘ Return</kbd> while the popover is open. Type a label in the field first if
+        you want the session tagged with what you're working on.
+      </p>
+      <p>
+        Out of the box Loop runs 25-minute focus sessions with 5-minute short breaks, and a
+        15-minute long break after every 4 completed focus sessions. All four are adjustable
+        in <span class="path">Preferences → Timer</span>.
+      </p>
+    </div>
+
+  </section>
+
+  <section>
+    <h2>Notifications and sound</h2>
+
+    <div class="qa">
+      <h3>I'm not getting an alert when a session ends</h3>
+      <p>
+        Check <span class="path">Preferences → Alerts</span>. If it says notifications are
+        turned off, use the button there to open System Settings and enable them for Loop.
+      </p>
+      <p>
+        A Focus mode or Do Not Disturb will also suppress the alert. Loop's notification is
+        marked time-sensitive, so allowing time-sensitive notifications for Loop in
+        <span class="path">System Settings → Notifications</span> lets it through.
+      </p>
+    </div>
+
+    <div class="qa">
+      <h3>Which sounds can I choose?</h3>
+      <p>
+        The free version includes Glass, Ping and Pop. Loop Pro unlocks the full macOS system
+        sound library. You can mute the completion sound entirely on either tier from
+        <span class="path">Preferences → Alerts</span>.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Your data</h2>
+
+    <div class="qa">
+      <h3>Where is my session history stored?</h3>
+      <p>
+        On your Mac, inside Loop's own sandbox container. It is never uploaded anywhere —
+        Loop ships without the network entitlement, so macOS prevents it from connecting to
+        the internet at all. See the
+        <a href="https://sevendeadlycommits.github.io/loop-privacy/">privacy policy</a>
+        for the detail.
+      </p>
+    </div>
+
+    <div class="qa">
+      <h3>Does Loop ever delete my history?</h3>
+      <p>
+        No. History is unlimited on every tier and is never pruned or throttled. If your Pro
+        trial ends, the extended charts stop being displayed but nothing is removed — buying
+        Pro brings the same data straight back.
+      </p>
+      <p>
+        Resetting your preferences from <span class="path">Preferences → Advanced</span>
+        also leaves history untouched.
+      </p>
+    </div>
+
+    <div class="qa">
+      <h3>Why doesn't a skipped session show in my stats?</h3>
+      <p>
+        Skipping logs the partial session so your history stays honest, but marks it
+        incomplete. Only completed focus sessions count toward totals, streaks and the
+        charts. You'll still see skipped sessions in the history list, marked as such.
+      </p>
+    </div>
+
+    <div class="qa">
+      <h3>Can I get my data out?</h3>
+      <p>
+        Loop Pro exports your complete history as a CSV file — one row per session, with
+        start and end time, planned and actual length, phase, completion and label. You
+        choose where it saves; nothing is uploaded.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Loop Pro</h2>
+
+    <div class="qa">
+      <h3>What does Pro add?</h3>
+      <ul>
+        <li>30-day and all-time charts, current and longest streaks, all-time totals</li>
+        <li>The full macOS system sound library</li>
+        <li>Five appearance themes</li>
+        <li>A desktop widget showing today's focus time and your streak</li>
+        <li>Shortcuts and Siri support</li>
+        <li>CSV export of your history</li>
+        <li>Automatic pause when your Mac sleeps or the screen locks</li>
+        <li>A global keyboard shortcut, and colour-coded tags with a per-tag breakdown</li>
+      </ul>
+      <p>
+        Every new install gets all of it free for 7 days. After that the free tier keeps
+        working exactly as it did, and Pro is a single one-time purchase — there is no
+        subscription and nothing to renew.
+      </p>
+    </div>
+
+    <div class="qa">
+      <h3>I bought Pro but it isn't unlocked</h3>
+      <p>
+        Open the paywall from the bottom of the popover, or
+        <span class="path">Preferences → Loop Pro</span>, and press
+        <strong>Restore Purchases</strong>. Make sure you're signed in to the same Apple
+        Account that made the purchase.
+      </p>
+    </div>
+
+    <div class="qa">
+      <h3>Can my family use it?</h3>
+      <p>Yes — Loop Pro has Family Sharing enabled.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Pro features that need setup</h2>
+
+    <div class="qa">
+      <h3>The widget says "Open Loop to finish setting up"</h3>
+      <p>
+        The widget reads a small summary the app publishes. Launch Loop at least once and
+        complete a session, then the widget will fill in on its next refresh.
+      </p>
+    </div>
+
+    <div class="qa">
+      <h3>My global shortcut doesn't work</h3>
+      <p>
+        The default is <kbd>⌃⌥R</kbd>. If macOS or another app has already claimed the
+        combination, Loop tells you so in
+        <span class="path">Preferences → Advanced</span> — record a different one there.
+        A shortcut needs at least one of <kbd>⌘</kbd>, <kbd>⌥</kbd> or <kbd>⌃</kbd>, so it
+        can't swallow ordinary typing.
+      </p>
+    </div>
+
+    <div class="qa">
+      <h3>Launch at login isn't sticking</h3>
+      <p>
+        macOS sometimes requires you to approve the item yourself. Check
+        <span class="path">System Settings → General → Login Items</span> and make sure Loop
+        is enabled there. Loop will tell you in
+        <span class="path">Preferences → Advanced</span> when approval is needed.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Timing</h2>
+
+    <div class="qa">
+      <h3>What happens if my Mac sleeps mid-session?</h3>
+      <p>
+        Nothing is lost. Loop counts down to a fixed end time rather than ticking, so display
+        sleep, App Nap and the Mac sleeping can't make it drift. Quit and relaunch mid-session
+        and the countdown picks up against real elapsed time; if the session finished while
+        Loop was closed, it's logged at the time it actually ended.
+      </p>
+      <p>
+        Loop Pro can also pause automatically when the Mac sleeps or the screen locks —
+        turn that on in <span class="path">Preferences → Advanced</span>.
+      </p>
+    </div>
+
+    <div class="qa">
+      <h3>I changed a duration mid-session and nothing happened</h3>
+      <p>
+        That's deliberate. A running countdown is never re-timed underneath you — new
+        durations take effect from the next session.
+      </p>
+    </div>
+  </section>
+
+  <div class="contact">
+    <h2>Still stuck?</h2>
+    <p>
+      Email <a href="mailto:syrioth@gmail.com">syrioth@gmail.com</a>
+      and include your macOS version and what you were doing when it went wrong.
+    </p>
+  </div>
+
+  <footer>
+    <span>Loop for macOS — a private, offline-first focus timer.</span>
+    <span>© 2026 Barney Randall. All rights reserved.</span>
+  </footer>
+
+</div>
